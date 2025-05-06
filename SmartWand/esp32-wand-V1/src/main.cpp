@@ -3,23 +3,10 @@
 #include <Wire.h>
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
+#include "config.h"
 
 
-//Accelerometer Constants
-#define ACCEL_ADR 0x68
 
-#define ACCEL_MAX 16000
-#define ACCEL_DIVISOR 150
-#define GYRO_DIVISOR 150
-#define GYRO_MAX 16000
-#define X_DIVISOR 500
-#define Y_DIVISOR 250
-#define POINT_RADIUS 1
-#define OFFSET_Y 32
-#define OFFSET_X 64
-#define NUM_PIXELS 50
-#define ON 1
-#define OFF 0
 
 int16_t accel_x, accel_y, accel_z;
 int16_t gyro_x, gyro_y, raw_gyro_z;
