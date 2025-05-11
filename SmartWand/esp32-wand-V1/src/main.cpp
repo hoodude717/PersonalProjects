@@ -20,15 +20,17 @@
 #define NUM_PIXELS 50
 #define ON 1
 #define OFF 0
+#define BUTTON A19
 
 int16_t accel_x, accel_y, accel_z;
-int16_t gyro_x, gyro_y, raw_gyro_z;
+int16_t gyro_x, gyro_y, gyro_z;
 int16_t smooth_gyro_z;
 int16_t temp;
 float accAngleX, accAngleY, gyroAngleX, gyroAngleY, gyroAngleZ;
 float roll, pitch, yaw;
 float AccErrorX, AccErrorY, GyroErrorX, GyroErrorY, GyroErrorZ;
 float elapsedTime, currentTime, previousTime;
+bool oneshot_flag = false;
 
 
 char tempStr[7];
@@ -86,6 +88,8 @@ void getAccelData();
 void CoordBoundsCheck(int16_t* x, int16_t* y);
 void calculate_IMU_error();
 float get_gyro_smoothed();
+int16_t get_yaw_value();
+void draw_buffer();
 
 //Global Variables
 char str[7];
@@ -96,11 +100,14 @@ char*  convert_to_str(int16_t i) {
   return str;
 }
 
-
+float get_pin_voltage(int pin) {
+  return ((float) analogRead(pin)/4095) * 3.3;
+}
 
 
 void setup() {
   Serial.begin(9600);
+  pinMode(BUTTON, INPUT);
   //Accel Setup
   Wire.begin();
   Wire.beginTransmission(ACCEL_ADR);
@@ -128,75 +135,82 @@ void setup() {
 }
 
 void loop() {
-  getAccelData();
-  //Serial.println(smooth_gyro_z);
+  
+
+  // accAngleX = (atan(accel_y / sqrt(pow(accel_x, 2) + pow(accel_z, 2))) * 180 / PI) - AccErrorX ; // AccErrorX ~(0.58) See the calculate_IMU_error()custom function for more details
+  // accAngleY = (atan(-1 * accel_x / sqrt(pow(accel_y, 2) + pow(accel_z, 2))) * 180 / PI) - AccErrorY; // AccErrorY ~(-1.58)
 
 
-  // Serial.print("aX: "); Serial.print(convert(accel_x));
+  // // Currently the raw values are in degrees per seconds, deg/s, so we need to multiply by sendonds (s) to get the angle in degrees
+  // gyroAngleX = gyroAngleX + gyro_x * elapsedTime; // deg/s * s = deg
+  // gyroAngleY = gyroAngleY + gyro_y * elapsedTime;
+  // // Complementary filter - combine acceleromter and gyro angle values
+  // roll = 0.96 * gyroAngleX + 0.04 * accAngleX;
+  // pitch = 0.96 * gyroAngleY + 0.04 * accAngleY;
 
-  // Serial.print(" | aY: "); Serial.print(convert(accel_y));  
-  // Serial.print(" | aZ: "); Serial.print(convert(accel_z));  
-  // Serial.print(" | gX: "); Serial.print(convert(gyro_x));
-  // Serial.print(" | gY: "); Serial.print(convert(gyro_y));  
-  // Serial.print(" | gZ: "); Serial.print(convert(raw_gyro_z));  
-  accAngleX = (atan(accel_y / sqrt(pow(accel_x, 2) + pow(accel_z, 2))) * 180 / PI) - AccErrorX ; // AccErrorX ~(0.58) See the calculate_IMU_error()custom function for more details
-  accAngleY = (atan(-1 * accel_x / sqrt(pow(accel_y, 2) + pow(accel_z, 2))) * 180 / PI) - AccErrorY; // AccErrorY ~(-1.58)
-
-  previousTime = currentTime;        // Previous time is stored before the actual time read
-  currentTime = millis();            // Current time actual time read
-  elapsedTime = (currentTime - previousTime)/1000; // Divide by 1000 to get seconds
-  // erasing drift
-    // Correct the outputs with the calculated error values
-  gyro_x = gyro_x;
-  //scaling down huge values
-  // raw_gyro_z = raw_gyro_z / Y_DIVISOR;
-
-    // Currently the raw values are in degrees per seconds, deg/s, so we need to multiply by sendonds (s) to get the angle in degrees
-    gyroAngleX = gyroAngleX + gyro_x * elapsedTime; // deg/s * s = deg
-    gyroAngleY = gyroAngleY + gyro_y * elapsedTime;
-    yaw =  yaw + (smooth_gyro_z * elapsedTime);
-    // Complementary filter - combine acceleromter and gyro angle values
-    roll = 0.96 * gyroAngleX + 0.04 * accAngleX;
-    pitch = 0.96 * gyroAngleY + 0.04 * accAngleY;
-    // Serial.print("Value: ");
-    // Serial.print(smooth_gyro_z);
-    // Serial.print(" | Error: ");
-    // Serial.print(GyroErrorZ);
-    // Serial.print(" | Time: ");
-    // Serial.print(elapsedTime);
 
     
-  //printData();
-  int16_t yaw_int = (int16_t) yaw;
-  // Serial.print(" | Yaw: ");  
-  // Serial.println(yaw_int);
 
+  
+  getAccelData();
+  int16_t yaw_int = (int16_t) yaw;
   CoordBoundsCheck(&accel_y, &yaw_int);
   static int pixelsY[NUM_PIXELS], pixelsX[NUM_PIXELS];
   static uint8_t i = 0;
   uint8_t j = i%NUM_PIXELS;
-  pixelsY[j] = -accel_y;
-  pixelsX[j] = -yaw_int;
 
-  //Delete the first points and replace them with the new coords
-  if (i >= NUM_PIXELS) { // Only start erasing after NUM_PIXELS points
-    uint8_t oldIndex = (i - NUM_PIXELS+1) % NUM_PIXELS; // Find the oldest point
-    display.fillCircle(pixelsX[oldIndex] + OFFSET_X, pixelsY[oldIndex] + OFFSET_Y, POINT_RADIUS, OFF); // Draw background color
-  }
-  display.fillCircle(pixelsX[j]+OFFSET_X, pixelsY[j]+OFFSET_Y, POINT_RADIUS, ON);
-  i++;
-
-  Serial.print(" | Adjusted X: "); Serial.print(pixelsX[j]); Serial.print(" Y: "); Serial.print(pixelsY[j]); 
-  // Serial.print(i);
-  // Serial.println();
-  //printData();
-  display.display();
-  if(i == 150) {
-    i = 0;
+  if (!oneshot_flag && get_pin_voltage(BUTTON)>3) {
     display.clearDisplay();
+    oneshot_flag = true;
+    yaw = 0;
+  } else if (oneshot_flag && get_pin_voltage(BUTTON) == 0) {
+    oneshot_flag = false;
   }
+  Serial.println(get_pin_voltage(BUTTON));
+  if(get_pin_voltage(BUTTON)>3) {
+    display.display();
+    pixelsY[j] = -accel_y;
+    pixelsX[j] = -yaw_int;
+    //Delete the first points and replace them with the new coords
+    // if (i >= NUM_PIXELS) { // Only start erasing after NUM_PIXELS points
+    //   uint8_t oldIndex = (i - NUM_PIXELS+1) % NUM_PIXELS; // Find the oldest point
+    //   display.fillCircle(pixelsX[oldIndex] + OFFSET_X, pixelsY[oldIndex] + OFFSET_Y, POINT_RADIUS, OFF); // Draw background color
+    // }
+    display.fillCircle(pixelsX[j]+OFFSET_X, pixelsY[j]+OFFSET_Y, POINT_RADIUS, ON);
+    i++;
+
+
+
+    // if(i == 150) {
+    //   i = 0;
+    //   display.clearDisplay();
+    // }
+  } else {
+    uint8_t *buffer = display.getBuffer();
+    for (int j = 0; j < 128; j++) {
+    //   for (int k=0; k < 64; k++) {
+    //     Serial.printf("%b\t", buffer[j*64 + k]);
+    //   }
+    //   Serial.println("\n");
+    }
+
+  }
+
+  
 
 }
+
+
+int16_t get_yaw_value() {
+  previousTime = currentTime;        // Previous time is stored before the actual time read
+  currentTime = millis();            // Current time actual time read
+  elapsedTime = (currentTime - previousTime)/1000; // Divide by 1000 to get seconds
+
+  yaw =  yaw + (smooth_gyro_z * elapsedTime);
+
+ return yaw;
+}
+
 
 void getAccelData() {
   Wire.beginTransmission(ACCEL_ADR);
@@ -210,17 +224,18 @@ void getAccelData() {
   temp = Wire.read() << 8 | Wire.read();
   gyro_x = (Wire.read() << 8 | Wire.read()) / GYRO_DIVISOR + GyroErrorX;
   gyro_y = (Wire.read() << 8 | Wire.read()) / GYRO_DIVISOR + GyroErrorY;
-  raw_gyro_z = (Wire.read() << 8 | Wire.read());
-  if ((abs(raw_gyro_z) >32000) || (abs(raw_gyro_z) < 200)){
+  gyro_z = (Wire.read() << 8 | Wire.read());
+  if ((abs(gyro_z) > 32000) || (abs(gyro_z) < 200)){
     smooth_gyro_z = 0;
   }
   else {
     if (abs(smooth_gyro_z) == 1) {
       smooth_gyro_z = 0;
     } else {
-      smooth_gyro_z = raw_gyro_z / GYRO_DIVISOR;
+      smooth_gyro_z = gyro_z / GYRO_DIVISOR;
     }
   }
+  get_yaw_value();
 }
 
 void printData() {
@@ -233,7 +248,14 @@ void printData() {
     display.print(F("aZ: ")); display.println(accel_z);
     display.print(F("gX: ")); display.println(gyro_x);
     display.print(F("gY: ")); display.println(gyro_y);
-    display.print(F("gZ: ")); display.println(raw_gyro_z);
+    display.print(F("gZ: ")); display.println(gyro_z);
+
+    Serial.print(("aX: ")); Serial.print(accel_x);
+    Serial.print(("aY: ")); Serial.print(accel_y);
+    Serial.print(("aZ: ")); Serial.print(accel_z);
+    Serial.print(("gX: ")); Serial.print(gyro_x);
+    Serial.print(("gY: ")); Serial.print(gyro_y);
+    Serial.print(("gZ: ")); Serial.println(gyro_z);
 
 
     display.display();
@@ -270,7 +292,7 @@ void calculate_IMU_error() {
     AccErrorY = AccErrorY + ((atan(-1 * (accel_x) / sqrt(pow((accel_y), 2) + pow((accel_z), 2))) * 180 / PI));
     GyroErrorX = GyroErrorX + (gyro_x);
     GyroErrorY = GyroErrorY + (gyro_y);
-    GyroErrorZ = GyroErrorZ + (raw_gyro_z);
+    GyroErrorZ = GyroErrorZ + (gyro_z);
     c++;
   }
   //Divide the sum by 200 to get the error value
@@ -284,8 +306,8 @@ void calculate_IMU_error() {
 
 
 float get_gyro_smoothed() {
-  static float smooth_gyro_z = raw_gyro_z;
-  float gyro = raw_gyro_z;
+  static float smooth_gyro_z = gyro_z;
+  float gyro = gyro_z;
   float alpha = 0.9; // alpha-filter constant
   if ((gyro > 200) && (gyro < 30000)) {
     // alpha filter all good measurements     
