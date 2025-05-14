@@ -12,8 +12,25 @@
 #ifndef CONTROLS_H
 #define CONTROLS_H
 #include "stdint.h"
-#include "driver/gpio.h"
+#include "stdbool.h"
 
+
+
+#define BUTTON_PIN 4 // Pin number for the button
+#define ACCEL_ADDR 0x3C // I2C address for the device
+#define I2C_NUM_BYTES 16 // Number of bytes to read from I2C
+#define BLE_BUFFER_SIZE 128 // Size of the buffer for BLE communication
+#define BLE_DEVICE_NAME "SmartWand" // Name of the BLE device
+#define BLE_SERVICE_UUID "12345678-1234-5678-1234-56789abcdef0" // UUID for the BLE service
+#define BLE_CHARACTERISTIC_UUID "12345678-1234-5678-1234-56789abcdef1" // UUID for the BLE characteristic
+#define BLE_DESCRIPTOR_UUID "12345678-1234-5678-1234-56789abcdef2" // UUID for the BLE descriptor
+#define BLE_MTU_SIZE 512 // Maximum Transmission Unit size for BLE communication
+#define BLE_MAX_CONNECTIONS 4 // Maximum number of BLE connections
+#define BLE_TIMEOUT 1000 // Timeout for BLE operations in milliseconds
+#define I2C_TIMEOUT 1000 // Timeout for I2C operations in milliseconds
+#define I2C_SDA_PIN 21 // SDA pin for I2C
+#define I2C_SCL_PIN 22 // SCL pin for I2C
+#define I2C_FREQUENCY 100000 // Frequency for I2C communication
 
 //Initialize the pins for the basic controls
 // Button Pin and LED pin

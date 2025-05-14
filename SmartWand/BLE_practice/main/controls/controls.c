@@ -1,12 +1,17 @@
 #include "controls.h"
-
-
+#include "led.h"
+#include "button.h"
+#include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
+#include "driver/gpio.h"
 
 //Initialize the pins for the basic controls
 // Button Pin and LED pin
 // I2C controls and Bluertooth
 void controls_init(){
-    gpio_set_direction();
+    led_init(); // Initialize the LED
+    button_init(); // Initialize the button and debouncer timer
+
 }
 
 // Returns if the pin is on or off. 
@@ -30,6 +35,6 @@ void controls_read_i2c(uint32_t addr, int8_t nbytes){
 }
 
 //Turns the led on or off based off flag
-void controls_toggle_led(int8_t pin, bool on){
-
+void controls_toggle_led(bool on){
+    led_toggle(on);
 }

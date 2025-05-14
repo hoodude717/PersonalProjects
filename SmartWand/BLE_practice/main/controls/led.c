@@ -6,9 +6,9 @@
 
 #define LEDC_TIMER              LEDC_TIMER_0
 #define LEDC_MODE               LEDC_HIGH_SPEED_MODE
-#define LEDC_OUTPUT_R           (18)  // Red channel GPIO
-#define LEDC_OUTPUT_G           (19)  // Green channel GPIO
-#define LEDC_OUTPUT_B           (21)  // Blue channel GPIO
+#define LEDC_OUTPUT_R           (17)  // Red channel GPIO
+#define LEDC_OUTPUT_G           (18)  // Green channel GPIO
+#define LEDC_OUTPUT_B           (19)  // Blue channel GPIO
 #define LEDC_CHANNEL_R          LEDC_CHANNEL_0
 #define LEDC_CHANNEL_G          LEDC_CHANNEL_1
 #define LEDC_CHANNEL_B          LEDC_CHANNEL_2
