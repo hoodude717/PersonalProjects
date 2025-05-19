@@ -10,7 +10,7 @@
 /Users/hoodoo/Desktop/PersonalProjects/SmartWand/BLE_practice/build/CMakeFiles/flash.dir
 /Users/hoodoo/Desktop/PersonalProjects/SmartWand/BLE_practice/build/CMakeFiles/encrypted-flash.dir
 /Users/hoodoo/Desktop/PersonalProjects/SmartWand/BLE_practice/build/CMakeFiles/_project_elf_src.dir
-/Users/hoodoo/Desktop/PersonalProjects/SmartWand/BLE_practice/build/CMakeFiles/Practice_BLE.elf.dir
+/Users/hoodoo/Desktop/PersonalProjects/SmartWand/BLE_practice/build/CMakeFiles/BLE_practice.elf.dir
 /Users/hoodoo/Desktop/PersonalProjects/SmartWand/BLE_practice/build/CMakeFiles/size.dir
 /Users/hoodoo/Desktop/PersonalProjects/SmartWand/BLE_practice/build/CMakeFiles/size-files.dir
 /Users/hoodoo/Desktop/PersonalProjects/SmartWand/BLE_practice/build/CMakeFiles/size-components.dir

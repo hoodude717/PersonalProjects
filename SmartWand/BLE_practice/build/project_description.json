@@ -1,6 +1,6 @@
 {
     "version":            "1.2",
-    "project_name":       "Practice_BLE",
+    "project_name":       "BLE_practice",
     "project_version":    "1.0.1",
     "project_path":       "/Users/hoodoo/Desktop/PersonalProjects/SmartWand/BLE_practice",
     "idf_path":           "/Users/hoodoo/esp/esp-idf",
@@ -8,8 +8,8 @@
     "config_file":        "/Users/hoodoo/Desktop/PersonalProjects/SmartWand/BLE_practice/sdkconfig",
     "config_defaults":    "",
     "bootloader_elf":     "/Users/hoodoo/Desktop/PersonalProjects/SmartWand/BLE_practice/build/bootloader/bootloader.elf",
-    "app_elf":            "Practice_BLE.elf",
-    "app_bin":            "Practice_BLE.bin",
+    "app_elf":            "BLE_practice.elf",
+    "app_bin":            "BLE_practice.bin",
     "build_type":         "flash_app",
     "git_revision":       "v5.4.1",
     "target":             "esp32",
@@ -1195,8 +1195,8 @@
             "managed_reqs": [],
             "managed_priv_reqs": [],
             "file": "/Users/hoodoo/Desktop/PersonalProjects/SmartWand/BLE_practice/build/esp-idf/main/libmain.a",
-            "sources": [ "/Users/hoodoo/Desktop/PersonalProjects/SmartWand/BLE_practice/main/main.c" ],
-            "include_dirs": [ ".", "./controls" ]
+            "sources": [ "/Users/hoodoo/Desktop/PersonalProjects/SmartWand/BLE_practice/main/main.c", "/Users/hoodoo/Desktop/PersonalProjects/SmartWand/BLE_practice/main/led.c", "/Users/hoodoo/Desktop/PersonalProjects/SmartWand/BLE_practice/main/button.c", "/Users/hoodoo/Desktop/PersonalProjects/SmartWand/BLE_practice/main/controls.c" ],
+            "include_dirs": [ "." ]
         },
         "mbedtls": {
             "alias": "idf::mbedtls",
@@ -2845,7 +2845,7 @@
             "priv_reqs": [],
             "managed_reqs": [],
             "managed_priv_reqs": [],
-            "include_dirs": [ ".", "./controls" ]
+            "include_dirs": [ "." ]
         }
     },
     "debug_prefix_map_gdbinit": "",

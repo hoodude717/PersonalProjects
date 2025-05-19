@@ -22,4 +22,4 @@ set confirm off
 set confirm on
 
 # Load application symbols
-file /Users/hoodoo/Desktop/PersonalProjects/SmartWand/BLE_practice/build/Practice_BLE.elf
+file /Users/hoodoo/Desktop/PersonalProjects/SmartWand/BLE_practice/build/BLE_practice.elf

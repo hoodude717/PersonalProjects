@@ -1,3 +1,4 @@
-idf_component_register(SRCS "main.c" 
-                    INCLUDE_DIRS "." "./controls"
-                    REQUIRES esp_driver_gpio)
+idf_component_register(
+    SRCS "main.c" "led.c" "button.c" "controls.c"
+    INCLUDE_DIRS "."
+)
