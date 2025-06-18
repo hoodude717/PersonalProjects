@@ -14,7 +14,7 @@
 #include "stdint.h"
 #include "stdbool.h"
 
-#define BUTTON_PIN 12 // Pin number for the button
+#define BUTTON_PIN 26 // Pin number for the button
 #define BUTTON_DEBOUNCE_TIME 100 // Debounce time in milliseconds
 #define BUTTON_LONG_PRESS_TIME 1000 // Long press time in milliseconds
 #define BUTTON_SHORT_PRESS_TIME 200 // Short press time in milliseconds
@@ -25,6 +25,10 @@ void button_init();
 
 // Debounces the button input
 bool button_pressed();
+bool button_released();
+
+//Return the level of the button
+bool button_get_level();
 
 //clear the button event
 void button_clear_event();

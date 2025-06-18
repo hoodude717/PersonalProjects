@@ -39,6 +39,9 @@ void controls_init();
 // Returns if the pin is on or off. 
 bool controls_get_button();
 
+//Oneshot button detector
+bool controls_button_pressed();
+bool controls_button_released();
 // Writes a message in the form of buffer to the client.
 void controls_write_ble();
 

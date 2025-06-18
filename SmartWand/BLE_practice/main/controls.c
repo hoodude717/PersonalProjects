@@ -16,10 +16,20 @@ void controls_init(){
 
 // Returns if the pin is on or off. 
 bool controls_get_button(){
-    bool flag = button_pressed();
+    bool flag = button_get_level();
     // button_clear_event();
     return flag;
 
+}
+
+//One shot detector
+bool controls_button_pressed() {
+    return button_pressed();
+}
+
+//One shot detector
+bool controls_button_released() {
+    return button_released();
 }
 
 // Writes a message in the form of buffer to the client.

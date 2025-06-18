@@ -3,6 +3,8 @@
 #include "freertos/task.h"
 #include "driver/gpio.h"
 #include "esp_log.h"
+#include "imu.h"
+
 
 
 // volatile bool button_pressed = false;
@@ -26,11 +28,11 @@ static void IRAM_ATTR button_isr_handler(void* arg) {
 
 // Timer callback after debounce time has passed
 static void debounce_timer_callback(TimerHandle_t xTimer) {
-    int level = gpio_get_level(BUTTON_PIN);
-    if (level == 0) {
+    if (button_get_level()) {
         button_pressed_event = true;
         button_released_event = false;
         ESP_LOGI(TAG, "Button pressed (debounced)");
+        imu_reset_angles();
     } else {
         button_released_event = true;
         button_pressed_event = false;
@@ -43,7 +45,7 @@ void button_init() {
     gpio_config_t io_conf = {
         .pin_bit_mask = 1ULL << BUTTON_PIN,
         .mode = GPIO_MODE_INPUT,
-        .pull_up_en = GPIO_PULLUP_ENABLE,
+        .pull_up_en = GPIO_PULLUP_DISABLE,
         .pull_down_en = GPIO_PULLDOWN_DISABLE,
         .intr_type = GPIO_INTR_ANYEDGE  // Trigger on both edges
     };
@@ -69,6 +71,13 @@ void button_init() {
 
 }
 
+//Return the level of the button
+bool button_get_level(){
+    return gpio_get_level(BUTTON_PIN); //High == 1 Change to 0 High
+}
+
+
+//One shot only when the button is pressed
 bool button_pressed() {
     if (button_pressed_event) {
         button_pressed_event = false;  // One-shot behavior
@@ -77,3 +86,11 @@ bool button_pressed() {
     return false;
 }
 
+//One shot only when the button is released
+bool button_released() {
+    if (button_released_event) {
+        button_released_event = false;  // One-shot behavior
+        return true;
+    }
+    return false;
+}

@@ -1,9 +1,14 @@
 #include <stdio.h>
+#include "esp_mac.h"
 #include "driver/gpio.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "controls.h"
 #include "led.h"
+#include "imu.h"
+#include "ble.h"
+#include "nvs_flash.h"
+#include "buffer.h"
 
 typedef enum {
     RED,
@@ -17,7 +22,7 @@ void change_color_fsm() {
 
     switch (color_st) {
         case RED:
-            led_set_color(10, 1, 0);
+            led_set_color(255, 25, 0);
             color_st = GREEN;
             break;
         case GREEN:
@@ -29,8 +34,8 @@ void change_color_fsm() {
             color_st = WHITE;
             break;
         case WHITE:
-            led_set_color(255,0,255);
-            led_set_brightness(10);
+            led_set_color(255,255,255);
+            // led_set_brightness(10);
             color_st = RED;
             break;
         default: 
@@ -38,24 +43,78 @@ void change_color_fsm() {
     }
 }
 
+
+
+void print_imu_data(void)
+{
+    // printf("Accel (g): ax=%.3f, ay=%.3f, az=%.3f\t", 
+    //        imu_get_ax(), imu_get_ay(), imu_get_az());
+
+    // printf("Gyro (rad/s): gx=%0.3f, gy=%0.3f, gz=%0.3f\t", 
+    //        imu_get_gx(), imu_get_gy(), imu_get_gz());
+
+    printf("Angles (rad): roll=%.3f, pitch=%.3f, yaw=%.3f\n", 
+           imu_get_roll(), imu_get_pitch(), imu_get_yaw());
+
+
+}
+
+
+void imu_task(void *pvParameters)
+{
+    while (1) {
+
+        if (controls_get_button()) {
+
+            imu_tick();
+            buffer_draw_pos(imu_get_yaw(), imu_get_roll());
+        }
+
+        vTaskDelay(pdMS_TO_TICKS(10));  // 100 Hz
+    }
+}
+
+
+
+
 void app_main(void)
 {
+    esp_err_t ret = nvs_flash_init();
+    if (ret == ESP_ERR_NVS_NO_FREE_PAGES || ret == ESP_ERR_NVS_NEW_VERSION_FOUND) {
+        ESP_ERROR_CHECK(nvs_flash_erase());
+        ret = nvs_flash_init();
+    }
+    ESP_ERROR_CHECK(ret);
     controls_init();
+    imu_init();
+    ble_init();
 
-    bool waiting_for_release = false;
+    //Create a Task which loops through and gets Imu data
+    xTaskCreate(imu_task, "imu_task", 8192, NULL, 5, NULL);
+
+
 
     while (1) {
-        if (!waiting_for_release && controls_get_button()) {
-            change_color_fsm();
-            controls_toggle_led(true);
-            waiting_for_release = true;
-        } else if (waiting_for_release && !gpio_get_level(12)) {
-            // still held, do nothing
-        } else if (waiting_for_release && gpio_get_level(12)) {
-            // button released
-            waiting_for_release = false;
-            controls_toggle_led(false);
+        if(controls_button_pressed()) {
+            buffer_set_origin(imu_get_yaw(), imu_get_roll());
         }
+        if (controls_get_button()) {
+            // print_imu_data();
+        }
+        if(controls_button_released()) {
+            buffer_on_button_release();
+            buffer_convert_to_bitmap();
+            buffer_clear_buffer();
+        }
+
+
+        // ble_send_orientation(
+        //     imu_get_roll(), 
+        //     imu_get_pitch(), 
+        //     imu_get_yaw()
+        // );
+
+
 
         vTaskDelay(pdMS_TO_TICKS(50));
     }
