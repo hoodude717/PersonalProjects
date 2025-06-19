@@ -64,6 +64,11 @@ void i2c_imu_init() {
     };
     ESP_ERROR_CHECK(i2c_master_bus_add_device(bus_handle, &imu_config, &imu_handle));
 
+
+    uint8_t gyro_config_set_250dps[2] = {0x1B, 0x00}; // Register 0x1B, Value 0x00 (FS_SEL = 0)
+    ESP_ERROR_CHECK(i2c_master_transmit(imu_handle, gyro_config_set_250dps, sizeof(gyro_config_set_250dps), -1));
+    printf("Gyro FSR set to: ±250 dps\n"); // Print what you've actually set
+
     //Wake up the device
     uint8_t power_mgmt_write[2] = {0x6B, 0x00}; // Register, Value
     ESP_ERROR_CHECK(i2c_master_transmit(imu_handle, power_mgmt_write, sizeof(power_mgmt_write), -1));

@@ -12,7 +12,7 @@
 #define BUF_SIZE (NUM_IMU_VALUES * 2)
 
 #define RAW_2_G  16384.0f //Dividing each accelerometer value by this will convert to +-2g.
-#define RAW_2_DEG_PER_SEC 75.0f // Dividing each gyro value by this will convert to degrees per second
+#define RAW_2_DEG_PER_SEC 131.0f // Dividing each gyro value by this will convert to degrees per second
 #define DEG_2_RAD (M_PI / 180.0f)
 #define RAD_2_DEG (180.0f / 3.14)
 #define RAW_2_RAD_PER_SEC (DEG_2_RAD / RAW_2_DEG_PER_SEC)
@@ -24,9 +24,9 @@ static int16_t imu_raw_temp = 0;
 static imu_angles_t imu_latest_angles = {0};
 float gyro_bias_x = 0, gyro_bias_y = 0, gyro_bias_z = 0;
 
-const static int16_t gx_bias = -262;
-const static int16_t gy_bias = 1;
-const static int16_t gz_bias = -81;
+static int16_t gx_bias = -296;
+static int16_t gy_bias = -8;
+static int16_t gz_bias = -87;
 
 // ===================== Public Function Implementations =====================
 
@@ -62,17 +62,16 @@ int imu_get_sensor_data(uint8_t *data)
     imu_latest_raw_data.ay = (data[2] << 8) | data[3];
     imu_latest_raw_data.az = (data[4] << 8) | data[5];
     imu_raw_temp           = (data[6] << 8) | data[7];
-    imu_latest_raw_data.gx = ((data[8] << 8) | data[9]) - gx_bias;
-    imu_latest_raw_data.gy = ((data[10] << 8) | data[11]) - gy_bias;
-    imu_latest_raw_data.gz = ((data[12] << 8) | data[13]) - gz_bias;
+    imu_latest_raw_data.gx = ((data[8] << 8) | data[9]);
+    imu_latest_raw_data.gy = ((data[10] << 8) | data[11]);
+    imu_latest_raw_data.gz = ((data[12] << 8) | data[13]);
 
-
-    imu_latest_data.ax = imu_latest_raw_data.ax / RAW_2_G;
-    imu_latest_data.ay = imu_latest_raw_data.ay / RAW_2_G;
-    imu_latest_data.az = imu_latest_raw_data.az / RAW_2_G;
-    imu_latest_data.gx = imu_latest_raw_data.gx * RAW_2_RAD_PER_SEC;
-    imu_latest_data.gy = imu_latest_raw_data.gy * RAW_2_RAD_PER_SEC;
-    imu_latest_data.gz = imu_latest_raw_data.gz * RAW_2_RAD_PER_SEC;
+    imu_latest_data.ax = (float)imu_latest_raw_data.ax / RAW_2_G;
+    imu_latest_data.ay = (float)imu_latest_raw_data.ay / RAW_2_G;
+    imu_latest_data.az = (float)imu_latest_raw_data.az / RAW_2_G;
+    imu_latest_data.gx = ((float)imu_latest_raw_data.gx - gx_bias) / RAW_2_DEG_PER_SEC * DEG_2_RAD;
+    imu_latest_data.gy = ((float)imu_latest_raw_data.gy - gy_bias) / RAW_2_DEG_PER_SEC * DEG_2_RAD;
+    imu_latest_data.gz = ((float)imu_latest_raw_data.gz - gz_bias) / RAW_2_DEG_PER_SEC * DEG_2_RAD;
 
     return 0;
 }
@@ -120,11 +119,15 @@ void imu_get_gyro_bias(void){
     gyro_bias_y /= 500.0f;
     gyro_bias_z /= 500.0f;
 
+    gx_bias = (int16_t)gyro_bias_x;
+    gy_bias = (int16_t)gyro_bias_y;
+    gz_bias = (int16_t)gyro_bias_z;
+
     // In your update loop:
     printf("Bias X: %f | Y: %f | X: %f \n", gyro_bias_x, gyro_bias_y, gyro_bias_z);
-    imu_latest_raw_data.gx -= gyro_bias_x;
-    imu_latest_raw_data.gy -= gyro_bias_y;
-    imu_latest_raw_data.gz -= gyro_bias_z;
+    // imu_latest_raw_data.gx -= gyro_bias_x;
+    // imu_latest_raw_data.gy -= gyro_bias_y;
+    // imu_latest_raw_data.gz -= gyro_bias_z;
 }
 
 void imu_reset_angles() {
@@ -137,6 +140,10 @@ void imu_reset_angles() {
 float imu_get_ax(void) { return imu_latest_data.ax; }
 float imu_get_ay(void) { return imu_latest_data.ay; }
 float imu_get_az(void) { return imu_latest_data.az; }
+
+int16_t imu_get_ax_raw(void) { return imu_latest_raw_data.ax; }
+int16_t imu_get_ay_raw(void) { return imu_latest_raw_data.ay; }
+int16_t imu_get_az_raw(void) { return imu_latest_raw_data.az; }
 
 float imu_get_gx(void) { return imu_latest_data.gx; }
 float imu_get_gy(void) { return imu_latest_data.gy; }

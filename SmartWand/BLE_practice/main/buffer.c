@@ -5,8 +5,8 @@ uint8_t bitmap_buffer[DISPLAY_HEIGHT][BITMAP_WIDTH_BYTES] = {0};
 uint8_t framebuffer[DISPLAY_HEIGHT][DISPLAY_WIDTH] = {0};
 
 // Sensitivity factor determines how fast movement translates to pixels
-float yaw_sensitivity = 10.0f;   // adjust as needed
-float pitch_sensitivity = 10.0f; // adjust as needed
+float yaw_sensitivity = 8.0f;   // adjust as needed
+float pitch_sensitivity = 4.0f; // adjust as needed
 
 // Global variables
 float origin_yaw = 0.0f;
@@ -27,20 +27,22 @@ void buffer_set_origin(float yaw, float pitch) {
 }
 
 void buffer_draw_pos(float yaw, float pitch) {
-    printf("Yaw: %02f\t Pitch: %02f\t", yaw, pitch);
     if (!origin_set) return;  // Don’t draw until origin is set
 
     // Relative angles
-    printf("origin: %02f\t origin: %02f\t", origin_yaw, origin_pitch);
+    // printf("origin: %02f\t origin: %02f\t", origin_yaw, origin_pitch);
     float rel_yaw = yaw - origin_yaw;
     float rel_pitch = pitch - origin_pitch;
     rel_yaw = -rel_yaw;
     rel_pitch = -rel_pitch;
-    printf("Relative %02f\t Relative %02f\n", rel_yaw, rel_pitch);
+    printf("Relative %02f\t Relative %02f\t", rel_yaw, rel_pitch);
+    rel_yaw *= yaw_sensitivity;   // Scale by sensitivit
+    rel_pitch *= pitch_sensitivity; // Scale by sensitivity
 
     // Map relative yaw/pitch to DISPLAY
-    int raw_x = (int)((rel_yaw + 180.0f) / 360.0f * DISPLAY_WIDTH);
+    int raw_x = (int)((rel_yaw + 90.0f) / 360.0f * DISPLAY_HEIGHT);
     int raw_y = (int)((rel_pitch + 90.0f) / 180.0f * DISPLAY_HEIGHT);
+    printf("Raw X: %d\t Raw Y: %d\t", raw_x, raw_y);
 
     // Clamp to display bounds
     raw_x = raw_x < 0 ? 0 : (raw_x >= DISPLAY_WIDTH ? DISPLAY_WIDTH - 1 : raw_x);

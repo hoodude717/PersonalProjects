@@ -67,7 +67,15 @@ void imu_task(void *pvParameters)
         if (controls_get_button()) {
 
             imu_tick();
-            buffer_draw_pos(imu_get_yaw(), imu_get_roll());
+            float yaw = imu_get_yaw();
+            float pitch = imu_get_roll();
+            // printf("Ax: %d\t Ay: %d\t Az: %d\n", 
+            //        imu_get_ax_raw(), imu_get_ay_raw(), imu_get_az_raw());
+            // printf("Gx: %d\t Gy: %d\t Gz: %d\n", 
+            //        imu_get_gx_raw(), imu_get_gy_raw(), imu_get_gz_raw());
+
+            // printf("Yaw: %02f\t Pitch: %02f\n", yaw, pitch);
+            buffer_draw_pos(yaw, pitch);
         }
 
         vTaskDelay(pdMS_TO_TICKS(10));  // 100 Hz
