@@ -1,9 +1,10 @@
 #include "button.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
+#include "freertos/timers.h" // For xTimerCreate, xTimerIsTimerActive, xTimerStartFromISR
+#include "freertos/queue.h"  // For xQueueSendFromISR
 #include "driver/gpio.h"
 #include "esp_log.h"
-#include "imu.h"
 
 
 
@@ -13,6 +14,10 @@ static TimerHandle_t debounce_timer;
 static volatile bool button_pressed_event = false;
 static volatile bool button_released_event = false;
 static bool isr_service_installed = false;
+
+// Queue to handle the button events
+// This queue can be used to send button events to tasks if needed
+QueueHandle_t xButtonEventQueue;
 
 // ISR: Called on button press (falling edge)
 
@@ -28,15 +33,25 @@ static void IRAM_ATTR button_isr_handler(void* arg) {
 
 // Timer callback after debounce time has passed
 static void debounce_timer_callback(TimerHandle_t xTimer) {
+    button_event_t event_type;
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+
     if (button_get_level()) {
         button_pressed_event = true;
         button_released_event = false;
         ESP_LOGI(TAG, "Button pressed (debounced)");
-        imu_reset_angles();
+        event_type = BUTTON_EVENT_PRESSED;
     } else {
         button_released_event = true;
         button_pressed_event = false;
         ESP_LOGI(TAG, "Button released (debounced)");
+        event_type = BUTTON_EVENT_RELEASED;
+    }
+
+    xQueueSendFromISR(xButtonEventQueue, &event_type, &xHigherPriorityTaskWoken);
+
+    if (xHigherPriorityTaskWoken) {
+        portYIELD_FROM_ISR();
     }
 }
 
@@ -45,8 +60,8 @@ void button_init() {
     gpio_config_t io_conf = {
         .pin_bit_mask = 1ULL << BUTTON_PIN,
         .mode = GPIO_MODE_INPUT,
-        .pull_up_en = GPIO_PULLUP_DISABLE,
-        .pull_down_en = GPIO_PULLDOWN_DISABLE,
+        .pull_up_en = GPIO_PULLUP_DISABLE, // Assuming external pulldown, or internal if needed
+        .pull_down_en = GPIO_PULLDOWN_DISABLE, // Based on your description "pull down resistor"
         .intr_type = GPIO_INTR_ANYEDGE  // Trigger on both edges
     };
     gpio_config(&io_conf);
@@ -60,20 +75,25 @@ void button_init() {
         debounce_timer_callback
     );
 
+    // Create the button event queue
+    xButtonEventQueue = xQueueCreate(5, sizeof(button_event_t)); // Queue for 5 events
+    if (xButtonEventQueue == NULL) {
+        ESP_LOGE(TAG, "Failed to create button event queue!");
+        // Handle error appropriately, maybe panic or retry
+    }
+
     // Install GPIO ISR service and attach handler
     if (!isr_service_installed) {
-        gpio_install_isr_service(0);
+        gpio_install_isr_service(0); // Pass 0 for default flags
         isr_service_installed = true;
-
     }
     gpio_set_intr_type(BUTTON_PIN, GPIO_INTR_ANYEDGE);
     gpio_isr_handler_add(BUTTON_PIN, button_isr_handler, NULL);
-
 }
 
 //Return the level of the button
 bool button_get_level(){
-    return gpio_get_level(BUTTON_PIN); //High == 1 Change to 0 High
+    return gpio_get_level(BUTTON_PIN);
 }
 
 

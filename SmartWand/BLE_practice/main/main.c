@@ -59,6 +59,30 @@ void print_imu_data(void)
 
 }
 
+void button_event_handler_task(void *pvParameters) {
+    button_event_t received_event;
+    while (1) {
+        // Wait indefinitely for an event from the button queue
+        if (xQueueReceive(xButtonEventQueue, &received_event, portMAX_DELAY) == pdPASS) {
+            switch (received_event) {
+                case BUTTON_EVENT_PRESSED:
+                    ESP_LOGI("EVENT_HANDLER", "Received BUTTON_EVENT_PRESSED");
+                    imu_reset_angles();
+                    buffer_set_origin(imu_get_yaw(), imu_get_roll());
+                    break;
+                case BUTTON_EVENT_RELEASED:
+                    ESP_LOGI("EVENT_HANDLER", "Received BUTTON_EVENT_RELEASED");
+                    buffer_on_button_release();
+                    buffer_convert_to_bitmap();
+                    buffer_clear_buffer();
+                    break;
+                default:
+                    break;
+            }
+        }
+    }
+}
+
 
 void imu_task(void *pvParameters)
 {
@@ -97,23 +121,17 @@ void app_main(void)
     imu_init();
     ble_init();
 
+    // Create a Task which handles button events
+    xTaskCreate(button_event_handler_task, "button_event_handler", 4096, NULL, 5, NULL);
+
     //Create a Task which loops through and gets Imu data
     xTaskCreate(imu_task, "imu_task", 8192, NULL, 5, NULL);
 
 
 
     while (1) {
-        if(controls_button_pressed()) {
-            buffer_set_origin(imu_get_yaw(), imu_get_roll());
-        }
-        if (controls_get_button()) {
-            // print_imu_data();
-        }
-        if(controls_button_released()) {
-            buffer_on_button_release();
-            buffer_convert_to_bitmap();
-            buffer_clear_buffer();
-        }
+
+
 
 
         // ble_send_orientation(
