@@ -9,6 +9,9 @@
 #include "ble.h"
 #include "nvs_flash.h"
 #include "buffer.h"
+#include "button.h"
+#include "esp_log.h"
+
 
 typedef enum {
     RED,
@@ -53,8 +56,8 @@ void print_imu_data(void)
     // printf("Gyro (rad/s): gx=%0.3f, gy=%0.3f, gz=%0.3f\t", 
     //        imu_get_gx(), imu_get_gy(), imu_get_gz());
 
-    printf("Angles (rad): roll=%.3f, pitch=%.3f, yaw=%.3f\n", 
-           imu_get_roll(), imu_get_pitch(), imu_get_yaw());
+    // printf("Angles (rad): roll=%.3f, pitch=%.3f, yaw=%.3f\n", 
+    //        imu_get_roll(), imu_get_pitch(), imu_get_yaw());
 
 
 }
@@ -67,7 +70,8 @@ void button_event_handler_task(void *pvParameters) {
             switch (received_event) {
                 case BUTTON_EVENT_PRESSED:
                     ESP_LOGI("EVENT_HANDLER", "Received BUTTON_EVENT_PRESSED");
-                    imu_reset_angles();
+                    // imu_reset_angles();
+                    // print_imu_data();
                     buffer_set_origin(imu_get_yaw(), imu_get_roll());
                     break;
                 case BUTTON_EVENT_RELEASED:
@@ -75,6 +79,7 @@ void button_event_handler_task(void *pvParameters) {
                     buffer_on_button_release();
                     buffer_convert_to_bitmap();
                     buffer_clear_buffer();
+                    imu_reset_angles();
                     break;
                 default:
                     break;
@@ -95,8 +100,8 @@ void imu_task(void *pvParameters)
             float pitch = imu_get_roll();
             // printf("Ax: %d\t Ay: %d\t Az: %d\n", 
             //        imu_get_ax_raw(), imu_get_ay_raw(), imu_get_az_raw());
-            // printf("Gx: %d\t Gy: %d\t Gz: %d\n", 
-            //        imu_get_gx_raw(), imu_get_gy_raw(), imu_get_gz_raw());
+            printf("Gx: %d\t Gy: %d\t Gz: %d\n", 
+                   imu_get_gx_raw(), imu_get_gy_raw(), imu_get_gz_raw());
 
             // printf("Yaw: %02f\t Pitch: %02f\n", yaw, pitch);
             buffer_draw_pos(yaw, pitch);

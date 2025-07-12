@@ -19,41 +19,68 @@ static bool isr_service_installed = false;
 // This queue can be used to send button events to tasks if needed
 QueueHandle_t xButtonEventQueue;
 
-// ISR: Called on button press (falling edge)
+static int last_stable_button_level = 1; // Start assuming released (high)
 
+
+// ISR: Triggered on ANY edge (both rising and falling)
 static void IRAM_ATTR button_isr_handler(void* arg) {
-    if (debounce_timer != NULL && xTimerIsTimerActive(debounce_timer) == pdFALSE) {
-        BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-        xTimerStartFromISR(debounce_timer, &xHigherPriorityTaskWoken);
-        if (xHigherPriorityTaskWoken) {
-            portYIELD_FROM_ISR();
-        }
+    // Stop the timer to restart debounce if another edge occurs quickly
+    if (debounce_timer != NULL) {
+        xTimerStopFromISR(debounce_timer, NULL);
     }
-}
-
-// Timer callback after debounce time has passed
-static void debounce_timer_callback(TimerHandle_t xTimer) {
-    button_event_t event_type;
+    // Start the timer to check button state after debounce
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-
-    if (button_get_level()) {
-        button_pressed_event = true;
-        button_released_event = false;
-        ESP_LOGI(TAG, "Button pressed (debounced)");
-        event_type = BUTTON_EVENT_PRESSED;
-    } else {
-        button_released_event = true;
-        button_pressed_event = false;
-        ESP_LOGI(TAG, "Button released (debounced)");
-        event_type = BUTTON_EVENT_RELEASED;
-    }
-
-    xQueueSendFromISR(xButtonEventQueue, &event_type, &xHigherPriorityTaskWoken);
-
+    xTimerStartFromISR(debounce_timer, &xHigherPriorityTaskWoken);
     if (xHigherPriorityTaskWoken) {
         portYIELD_FROM_ISR();
     }
 }
+
+
+
+// Timer callback after debounce time has passed
+static void debounce_timer_callback(TimerHandle_t xTimer) {
+    int current_button_level = gpio_get_level(BUTTON_PIN);
+    button_event_t event_type;
+
+    // Check if the button state has changed and is now stable
+    if (current_button_level != last_stable_button_level) {
+        if (current_button_level == 1) { // Button is now pressed (active low)
+            event_type = BUTTON_EVENT_PRESSED;
+            // No log here, moved to task
+        } else { // Button is now released (active low)
+            event_type = BUTTON_EVENT_RELEASED;
+            // No log here, moved to task
+        }
+        last_stable_button_level = current_button_level; // Update last stable state
+        xQueueSend(xButtonEventQueue, &event_type, 0); // Send to queue (non-ISR context here)
+    }
+    // If state hasn't changed, it was just noise or edge re-triggered during debounce
+}
+
+// // Timer callback after debounce time has passed
+// static void debounce_timer_callback(TimerHandle_t xTimer) {
+//     button_event_t event_type;
+//     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+
+//     if (button_get_level()) {
+//         button_pressed_event = true;
+//         button_released_event = false;
+//         //ESP_LOGI(TAG, "Button pressed (debounced)");
+//         event_type = BUTTON_EVENT_PRESSED;
+//     } else {
+//         button_released_event = true;
+//         button_pressed_event = false;
+//         //ESP_LOGI(TAG, "Button released (debounced)");
+//         event_type = BUTTON_EVENT_RELEASED;
+//     }
+
+//     xQueueSendFromISR(xButtonEventQueue, &event_type, &xHigherPriorityTaskWoken);
+
+//     if (xHigherPriorityTaskWoken) {
+//         portYIELD_FROM_ISR();
+//     }
+// }
 
 void button_init() {
     // Configure GPIO as input with pull-up resistor

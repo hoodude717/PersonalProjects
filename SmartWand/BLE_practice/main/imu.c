@@ -131,6 +131,7 @@ void imu_get_gyro_bias(void){
 }
 
 void imu_reset_angles() {
+    printf("Resetting the Angles\n");
     imu_latest_angles.pitch = 0;
     imu_latest_angles.roll = 0;
     imu_latest_angles.yaw = 0;

@@ -36,13 +36,14 @@ void buffer_draw_pos(float yaw, float pitch) {
     rel_yaw = -rel_yaw;
     rel_pitch = -rel_pitch;
     printf("Relative %02f\t Relative %02f\t", rel_yaw, rel_pitch);
+    printf("Origin X %02f\t  Origin Y %02f\t", origin_yaw, origin_pitch);
     rel_yaw *= yaw_sensitivity;   // Scale by sensitivit
     rel_pitch *= pitch_sensitivity; // Scale by sensitivity
 
     // Map relative yaw/pitch to DISPLAY
-    int raw_x = (int)((rel_yaw + 90.0f) / 360.0f * DISPLAY_HEIGHT);
+    int raw_x = (int)((rel_yaw + 180.0f) / 360.0f * DISPLAY_WIDTH);
     int raw_y = (int)((rel_pitch + 90.0f) / 180.0f * DISPLAY_HEIGHT);
-    printf("Raw X: %d\t Raw Y: %d\t", raw_x, raw_y);
+    // printf("Raw X: %d\t Raw Y: %d\t", raw_x, raw_y);
 
     // Clamp to display bounds
     raw_x = raw_x < 0 ? 0 : (raw_x >= DISPLAY_WIDTH ? DISPLAY_WIDTH - 1 : raw_x);
@@ -62,7 +63,7 @@ void buffer_draw_pos(float yaw, float pitch) {
     // Draw final pixel
     int draw_x = (int)smoothed_x;
     int draw_y = (int)smoothed_y;
-    printf("X: %d\tY: %d\n", draw_x, draw_y);
+    // printf("X: %d\tY: %d\n", draw_x, draw_y);
 
     if (draw_x >= 0 && draw_x < DISPLAY_WIDTH && draw_y >= 0 && draw_y < DISPLAY_HEIGHT) {
         framebuffer[draw_y][draw_x] = 1;
@@ -88,14 +89,14 @@ void buffer_convert_to_bitmap() {
             }
         }
     }
-    //printy buffer as hex
-    for (int y = 0; y < DISPLAY_HEIGHT; y++) {
-        printf("Row %d: ", y);
-        for (int b = 0; b < BITMAP_WIDTH_BYTES; b++) {
-            printf("%02x ", bitmap_buffer[y][b]);
-        }
-        printf("\n");
-    }
+    //printy buffer as hex not needed until knn algorithm is implemented
+    // for (int y = 0; y < DISPLAY_HEIGHT; y++) {
+    //     printf("Row %d: ", y);
+    //     for (int b = 0; b < BITMAP_WIDTH_BYTES; b++) {
+    //         printf("%02x ", bitmap_buffer[y][b]);
+    //     }
+    //     printf("\n");
+    // }
 
     //print shape of buffer bitmap
     for (int y = 0; y < DISPLAY_HEIGHT; y++) {
