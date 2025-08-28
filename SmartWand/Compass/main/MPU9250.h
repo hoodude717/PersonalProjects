@@ -105,7 +105,7 @@ esp_err_t mpu9250_registers_read(MPU9250 *dev, uint8_t reg_addr, uint8_t *data, 
 /**
  * @brief Write a byte to a MPU9250 sensor register
  */
-esp_err_t mpu9250_register_write(MPU9250 *dev, uint8_t reg_addr, uint8_t *data, uint8_t len);
+esp_err_t mpu9250_register_write(MPU9250 *dev, uint8_t reg_addr, uint8_t data, uint8_t len);
 
 /**
  * @brief i2c master initialization
