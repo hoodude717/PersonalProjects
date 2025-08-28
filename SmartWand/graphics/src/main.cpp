@@ -1,4 +1,5 @@
 #include "config.h"
+#include "triangle_mesh.h"
 
 
 unsigned int make_module(const std::string& filepath, unsigned int module_type);
@@ -17,18 +18,24 @@ int main() {
         std::cout << line << std::endl;
     }
 
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);  // 4.1 is well supported on macOS
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-
-    GLFWwindow* window;
     if (!glfwInit()) {
         std::cout << "GLFW Couldnt Initialize" << std::endl;
         return -1;
     }
 
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);  // 4.1 is well supported on macOS
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+
+    GLFWwindow* window;
+
     window = glfwCreateWindow(640,480,"Smart Wand Display", NULL, NULL);
+    if (!window) {
+        std::cout << "Failed to create GLFW window" << std::endl;
+        glfwTerminate();
+        return -1;
+    }
     glfwMakeContextCurrent(window);
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
         glfwTerminate();
@@ -38,11 +45,13 @@ int main() {
     glClearColor(0.25f, 0.5f, 0.75f, .50f);
     unsigned int shaderProgram = make_shader(vertex_filepath, fragment_filepath);
 
+    TriangleMesh* triangle = new TriangleMesh();
 
     while(!glfwWindowShouldClose(window)) {
         glfwPollEvents();
         glClear(GL_COLOR_BUFFER_BIT);
         glUseProgram(shaderProgram);
+        triangle->draw();
         glfwSwapBuffers(window);
 
     }
@@ -66,8 +75,8 @@ unsigned int make_shader(const std::string& vertex_filepath, const std::string& 
     glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
     if (!success) {
         char errorLog[1024];
-        glGetShaderInfoLog(shaderProgram, 1024, NULL, errorLog);
-        std::cout << "Error linking shader program: " << errorLog << std::endl;
+        glGetProgramInfoLog(shaderProgram, 1024, NULL, errorLog);
+        std::cout << "Error linking shader program: " << std::endl << errorLog ;
     }
 
     for (unsigned int module : shaderModules) {
@@ -75,7 +84,6 @@ unsigned int make_shader(const std::string& vertex_filepath, const std::string& 
     }
     return shaderProgram;
 }
-
 
 unsigned int make_module(const std::string& filepath, unsigned int module_type) {
     std::ifstream file;
@@ -92,6 +100,10 @@ unsigned int make_module(const std::string& filepath, unsigned int module_type) 
     file.close();
 
     unsigned int shaderModule = glCreateShader(module_type);
+    if (shaderModule == 0) {
+        std::cout << "Failed to create shader object for type: " << module_type << std::endl;
+        return 0;
+    }
     glShaderSource(shaderModule, 1, &shaderCode, NULL);
     glCompileShader(shaderModule);
 
