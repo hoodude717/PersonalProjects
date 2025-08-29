@@ -1,6 +1,18 @@
 
 #include "MPU9250.h"
+#include "MadgwickAHRS.h"
+#include <math.h>
 
+#define ACCEL_SENSITIVITY 16384.0f // for +/- 2g
+#define GYRO_SENSITIVITY 131.0f // for +/- 250 degrees/s
+#define TEMP_SENSITIVITY 333.87f // LSB per degree C
+#define TEMP_OFFSET 21.0f // in degree C
+#define MAG_SENSITIVITY 0.15f // in microteslas per LSB
+#define MAG_X_OFFSET 150
+#define MAG_Y_OFFSET -75
+#define MAG_Z_OFFSET -275
+
+#define DEG_2_RAD (M_PI / 180.0f)
 
 
 i2c_master_bus_handle_t bus_handle;
@@ -186,9 +198,9 @@ esp_err_t mpu9250_read_mag(MPU9250 *dev){
     }
 
     // AK8963 stores data in little-endian format (LSB first)
-    dev->mag_raw[0] = (int16_t)(mag_data[1] << 8 | mag_data[0]); // X
-    dev->mag_raw[1] = (int16_t)(mag_data[3] << 8 | mag_data[2]); // Y  
-    dev->mag_raw[2] = (int16_t)(mag_data[5] << 8 | mag_data[4]); // Z
+    dev->mag_raw[0] = (int16_t)(mag_data[1] << 8 | mag_data[0]) + MAG_X_OFFSET; // X
+    dev->mag_raw[1] = (int16_t)(mag_data[3] << 8 | mag_data[2]) + MAG_Y_OFFSET; // Y  
+    dev->mag_raw[2] = (int16_t)(mag_data[5] << 8 | mag_data[4]) + MAG_Z_OFFSET; // Z
 
     return ESP_OK;
 }
@@ -216,4 +228,74 @@ void mpu9250_print_data(MPU9250 *dev) {
         t,
         m_x, m_y, m_z
     );
+}
+
+esp_err_t mpu9250_convert_data(MPU9250* dev) {
+    mpu9250_read_imu(dev);
+    mpu9250_read_mag(dev);
+    dev->accel_smooth[0] = dev->accel_raw[0] / ACCEL_SENSITIVITY; 
+    dev->accel_smooth[1] = dev->accel_raw[1] / ACCEL_SENSITIVITY; 
+    dev->accel_smooth[2] = dev->accel_raw[2] / ACCEL_SENSITIVITY; 
+
+    dev->gyro_smooth[0] = dev->gyro_raw[0] / GYRO_SENSITIVITY; 
+    dev->gyro_smooth[1] = dev->gyro_raw[1] / GYRO_SENSITIVITY; 
+    dev->gyro_smooth[2] = dev->gyro_raw[2] / GYRO_SENSITIVITY; 
+
+    dev->temp_c = (dev->temp_raw / TEMP_SENSITIVITY) + TEMP_OFFSET;
+
+    dev->mag_smooth[0] = dev->mag_raw[0] / MAG_SENSITIVITY; 
+    dev->mag_smooth[1] = dev->mag_raw[1] / MAG_SENSITIVITY; 
+    dev->mag_smooth[2] = dev->mag_raw[2] / MAG_SENSITIVITY; 
+    return ESP_OK;
+}
+
+void mpu9250_print_data_smooth(MPU9250 *dev) {
+    float a_x = dev->accel_smooth[0];
+    float a_y = dev->accel_smooth[1];
+    float a_z = dev->accel_smooth[2];
+    float g_x = dev->gyro_smooth[0];
+    float g_y = dev->gyro_smooth[1];
+    float g_z = dev->gyro_smooth[2];
+    float t = dev->temp_c;
+    float m_x = dev->mag_smooth[0];
+    float m_y = dev->mag_smooth[1];
+    float m_z = dev->mag_smooth[2];
+    printf("Accel: %.2f,\t%.2f,\t%.2f\tGyro: %.2f,\t%.2f,\t%.2f\tTemp: %.2f\tMag: %.2f,\t%.2f,\t%.2f\n", 
+        a_x, a_y, a_z,
+        g_x, g_y, g_z,
+        t,
+        m_x, m_y, m_z
+    );
+}
+
+
+void mpu9250_get_angles(MPU9250* dev) {
+    mpu9250_convert_data(dev);
+
+    // Madgwick filter update
+    float q[4];
+    float q0,q1,q2,q3;
+    MadgwickAHRSupdate(
+        dev->gyro_smooth[0] * DEG_2_RAD,
+        dev->gyro_smooth[1] * DEG_2_RAD,
+        dev->gyro_smooth[2] * DEG_2_RAD,
+        dev->accel_smooth[0],
+        dev->accel_smooth[1],
+        dev->accel_smooth[2],
+        dev->mag_smooth[0],
+        dev->mag_smooth[1],
+        dev->mag_smooth[2]
+    );
+    MadgwickGetQuaternion(q);
+    q0=q[0]; q1=q[1]; q2=q[2]; q3=q[3];
+    //Calculate Euclidean Angles
+    float roll, pitch, yaw;
+    roll  = atan2f(2.0f * (q0*q1 + q2*q3), 1.0f - 2.0f * (q1*q1 + q2*q2));
+    pitch = asinf(2.0f * (q0*q2 - q3*q1));
+    yaw   = atan2f(2.0f * (q0*q3 + q1*q2), 1.0f - 2.0f * (q2*q2 + q3*q3));
+
+    dev->roll = roll * (180.0f / M_PI);
+    dev->pitch = pitch * (180.0f / M_PI);
+    dev->yaw = yaw * (180.0f / M_PI);
+
 }

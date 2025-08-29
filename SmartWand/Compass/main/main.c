@@ -20,22 +20,16 @@ void app_main(void) {
     int sample_count = 0;
     
     while(1) {
-        mpu9250_read_imu(&l_imu);
-        mpu9250_read_mag(&l_imu);
+
+        mpu9250_get_angles(&l_imu);
+        // mpu9250_convert_data(&l_imu);
         
         // Print in CSV format for easy parsing
-        int64_t timestamp = esp_timer_get_time() / 1000;
-        printf("MAG_DATA: %d,%d,%d,%d,%lld\n", 
-               sample_count++,
-               l_imu.mag_raw[0]+150,  //Offsets calculated from previous calibration data
-               l_imu.mag_raw[1]-75, 
-               l_imu.mag_raw[2]-250,
-               timestamp);
-        
-        if (sample_count % 100 == 0) {
-            printf("INFO: Logged %d samples\n", sample_count);
-        }
-        
+        // int64_t timestamp = esp_timer_get_time() / 1000;
+        // mpu9250_print_data_smooth(&l_imu);
+        printf("Pitch: %.2f, Roll: %.2f, Yaw: %.2f\n", 
+            l_imu.pitch, l_imu.roll, l_imu.yaw);
+            
         vTaskDelay(pdMS_TO_TICKS(50)); // 20Hz
     }
 }

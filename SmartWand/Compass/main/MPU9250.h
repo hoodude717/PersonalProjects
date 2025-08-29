@@ -82,6 +82,12 @@ typedef struct {
     int16_t gyro_raw[3];
     int16_t mag_raw[3];
 
+    float accel_smooth[3];
+    float gyro_smooth[3];
+    float mag_smooth[3];
+    float temp_c;
+
+    float roll, pitch, yaw;
 
 } MPU9250;
 
@@ -128,13 +134,30 @@ esp_err_t mpu9250_read_imu(MPU9250 *dev);
 esp_err_t mpu9250_read_mag(MPU9250 *dev);
 
 /**
- * @brief Print the data from the IMU and Magnetometer neatly
+ * @brief Convert the raw data into smooth standard units
+ */
+esp_err_t mpu9250_convert_data(MPU9250* dev);
+
+/**
+ * @brief Print the raw data from the IMU and Magnetometer neatly
  * @param dev Pointer to the MPU9250 device structure
  * Format:
  * Accel: x,   y,   z   Gyro: x,   y,   z   Temp: t   Mag: x,   y,   z 
  */
 void mpu9250_print_data(MPU9250 *dev);
 
+/**
+ * @brief Print the smooth data from the IMU and Magnetometer neatly
+ * @param dev Pointer to the MPU9250 device structure
+ * Format:
+ * Accel: x,   y,   z   Gyro: x,   y,   z   Temp: t   Mag: x,   y,   z 
+ */
+void mpu9250_print_data_smooth(MPU9250 *dev);
+
+/**
+ * @brief Gathers the data from the imu and then calculates the Euler angles using a Madgwick filter
+ */
+void mpu9250_get_angles(MPU9250* dev);
 
 
 #ifdef __cplusplus
