@@ -1,5 +1,7 @@
 #include "config.h"
 #include "triangle_mesh.h"
+#include "material.h"
+
 
 
 unsigned int make_module(const std::string& filepath, unsigned int module_type);
@@ -10,26 +12,13 @@ const std::string vertex_filepath = "../graphics/src/shaders/vertex.txt";
 const std::string fragment_filepath = "../graphics/src/shaders/fragment.txt";
 
 int main() {
-    std::ifstream file;
-    std::string line;
 
-    file.open(vertex_filepath);
-    while (std::getline(file, line)) {
-        std::cout << line << std::endl;
-    }
 
+    GLFWwindow* window;
     if (!glfwInit()) {
         std::cout << "GLFW Couldnt Initialize" << std::endl;
         return -1;
     }
-
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);  // 4.1 is well supported on macOS
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-
-    GLFWwindow* window;
-
     window = glfwCreateWindow(640,480,"Smart Wand Display", NULL, NULL);
     if (!window) {
         std::cout << "Failed to create GLFW window" << std::endl;
@@ -42,20 +31,35 @@ int main() {
         return -1;
     }
 
-    glClearColor(0.25f, 0.5f, 0.75f, .50f);
+    glClearColor(0.0f, 0.0f, 0.0f, .50f);
     unsigned int shaderProgram = make_shader(vertex_filepath, fragment_filepath);
 
     TriangleMesh* triangle = new TriangleMesh();
+    Material* material = new Material("../graphics/img/Hogwarts.jpeg");
+    Material* mask = new Material("../graphics/img/border.jpg");
+    
+    glUseProgram(shaderProgram);
+    glUniform1i(glGetUniformLocation(shaderProgram, "material"), 0);
+    glUniform1i(glGetUniformLocation(shaderProgram, "mask"), 1);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
 
     while(!glfwWindowShouldClose(window)) {
         glfwPollEvents();
         glClear(GL_COLOR_BUFFER_BIT);
         glUseProgram(shaderProgram);
+        material->use(0);
+        mask->use(1);
         triangle->draw();
         glfwSwapBuffers(window);
 
     }
     glDeleteProgram(shaderProgram);
+    delete triangle;
+    delete material;
+    delete mask;
     glfwTerminate();
     return 0;
 }
@@ -86,17 +90,14 @@ unsigned int make_shader(const std::string& vertex_filepath, const std::string& 
 }
 
 unsigned int make_module(const std::string& filepath, unsigned int module_type) {
-    std::ifstream file;
+    std::ifstream file(filepath);
     std::stringstream bufferLines;
-    std::string line;
+    bufferLines << file.rdbuf(); // Read the entire file in one call
 
-    file.open(filepath);
-    while (std::getline(file, line)) {
-        bufferLines << line << "\n";
-    }
+
     std::string shaderSource = bufferLines.str();
     const char* shaderCode = shaderSource.c_str();
-    bufferLines.clear();
+    
     file.close();
 
     unsigned int shaderModule = glCreateShader(module_type);
@@ -114,5 +115,6 @@ unsigned int make_module(const std::string& filepath, unsigned int module_type) 
         glGetShaderInfoLog(shaderModule, 1024, NULL, errorLog);
         std::cout << "Error compiling shader module: " << errorLog << std::endl;
     }
+    bufferLines.clear();
     return shaderModule;
 }
