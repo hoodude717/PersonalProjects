@@ -1,0 +1,18 @@
+# ninja log v5
+1	61	1756828844513656956	CMakeFiles/graphics.dir/src/glad.c.o	a13c532e775cb2fb
+0	319	1756832802477370169	CMakeFiles/graphics.dir/src/triangle_mesh.cpp.o	f9cf62041685efac
+320	376	1756832802536369707	graphics	88993fb8465e6b4c
+1	358	1756831287096233607	CMakeFiles/graphics.dir/src/main.cpp.o	9e55e84b44cbc358
+1	323	1756835451961605691	CMakeFiles/graphics.dir/src/triangle_mesh.cpp.o	f9cf62041685efac
+1	349	1756835451987605461	CMakeFiles/graphics.dir/src/main.cpp.o	9e55e84b44cbc358
+2	658	1756835452293602754	CMakeFiles/graphics.dir/src/config.cpp.o	542cd7a0e5753553
+1	109	1756835930094430846	CMakeFiles/graphics.dir/src/glad.c.o	a13c532e775cb2fb
+1	327	1756835930310428979	CMakeFiles/graphics.dir/src/triangle_mesh.cpp.o	f9cf62041685efac
+1	343	1756835930326428840	CMakeFiles/graphics.dir/src/material.cpp.o	8e9d85d2a5376e46
+1	350	1756835930334428771	CMakeFiles/graphics.dir/src/main.cpp.o	9e55e84b44cbc358
+1	669	1756835930651426030	CMakeFiles/graphics.dir/src/config.cpp.o	542cd7a0e5753553
+669	731	1756835930716425468	graphics	ae22c4a8a381b463
+1	318	1756836291048323038	CMakeFiles/graphics.dir/src/material.cpp.o	8e9d85d2a5376e46
+319	379	1756836291109322515	graphics	ae22c4a8a381b463
+1	338	1756836326816016145	CMakeFiles/graphics.dir/src/triangle_mesh.cpp.o	f9cf62041685efac
+339	399	1756836326879015605	graphics	ae22c4a8a381b463

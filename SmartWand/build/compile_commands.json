@@ -1,0 +1,32 @@
+[
+{
+  "directory": "/home/hoodoo17/Desktop/PersonalProjects/SmartWand/build",
+  "command": "/usr/bin/clang++ -I/home/hoodoo17/Desktop/PersonalProjects/SmartWand/graphics/dependencies -g -std=gnu++17 -o CMakeFiles/graphics.dir/src/main.cpp.o -c /home/hoodoo17/Desktop/PersonalProjects/SmartWand/graphics/src/main.cpp",
+  "file": "/home/hoodoo17/Desktop/PersonalProjects/SmartWand/graphics/src/main.cpp",
+  "output": "CMakeFiles/graphics.dir/src/main.cpp.o"
+},
+{
+  "directory": "/home/hoodoo17/Desktop/PersonalProjects/SmartWand/build",
+  "command": "/usr/bin/clang -I/home/hoodoo17/Desktop/PersonalProjects/SmartWand/graphics/dependencies -g -o CMakeFiles/graphics.dir/src/glad.c.o -c /home/hoodoo17/Desktop/PersonalProjects/SmartWand/graphics/src/glad.c",
+  "file": "/home/hoodoo17/Desktop/PersonalProjects/SmartWand/graphics/src/glad.c",
+  "output": "CMakeFiles/graphics.dir/src/glad.c.o"
+},
+{
+  "directory": "/home/hoodoo17/Desktop/PersonalProjects/SmartWand/build",
+  "command": "/usr/bin/clang++ -I/home/hoodoo17/Desktop/PersonalProjects/SmartWand/graphics/dependencies -g -std=gnu++17 -o CMakeFiles/graphics.dir/src/triangle_mesh.cpp.o -c /home/hoodoo17/Desktop/PersonalProjects/SmartWand/graphics/src/triangle_mesh.cpp",
+  "file": "/home/hoodoo17/Desktop/PersonalProjects/SmartWand/graphics/src/triangle_mesh.cpp",
+  "output": "CMakeFiles/graphics.dir/src/triangle_mesh.cpp.o"
+},
+{
+  "directory": "/home/hoodoo17/Desktop/PersonalProjects/SmartWand/build",
+  "command": "/usr/bin/clang++ -I/home/hoodoo17/Desktop/PersonalProjects/SmartWand/graphics/dependencies -g -std=gnu++17 -o CMakeFiles/graphics.dir/src/config.cpp.o -c /home/hoodoo17/Desktop/PersonalProjects/SmartWand/graphics/src/config.cpp",
+  "file": "/home/hoodoo17/Desktop/PersonalProjects/SmartWand/graphics/src/config.cpp",
+  "output": "CMakeFiles/graphics.dir/src/config.cpp.o"
+},
+{
+  "directory": "/home/hoodoo17/Desktop/PersonalProjects/SmartWand/build",
+  "command": "/usr/bin/clang++ -I/home/hoodoo17/Desktop/PersonalProjects/SmartWand/graphics/dependencies -g -std=gnu++17 -o CMakeFiles/graphics.dir/src/material.cpp.o -c /home/hoodoo17/Desktop/PersonalProjects/SmartWand/graphics/src/material.cpp",
+  "file": "/home/hoodoo17/Desktop/PersonalProjects/SmartWand/graphics/src/material.cpp",
+  "output": "CMakeFiles/graphics.dir/src/material.cpp.o"
+}
+]

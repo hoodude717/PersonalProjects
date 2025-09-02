@@ -1,0 +1,3 @@
+/home/hoodoo17/Desktop/PersonalProjects/SmartWand/build/CMakeFiles/graphics.dir
+/home/hoodoo17/Desktop/PersonalProjects/SmartWand/build/CMakeFiles/edit_cache.dir
+/home/hoodoo17/Desktop/PersonalProjects/SmartWand/build/CMakeFiles/rebuild_cache.dir
