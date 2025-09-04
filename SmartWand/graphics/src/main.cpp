@@ -1,6 +1,7 @@
 #include "config.h"
 #include "triangle_mesh.h"
 #include "material.h"
+#include "lin_algebra.h"
 
 
 
@@ -42,12 +43,23 @@ int main() {
     glUniform1i(glGetUniformLocation(shaderProgram, "material"), 0);
     glUniform1i(glGetUniformLocation(shaderProgram, "mask"), 1);
 
+
+    vec3 quad_pos = {0.4f, -0.2f, 0.0f};
+    // mat4 model = create_matrix_transform(quad_pos);
+    unsigned int model_loc = glGetUniformLocation(shaderProgram, "model");
+    // glUniformMatrix4fv(model_loc, 1, GL_FALSE, model.entries);
+    
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 
     while(!glfwWindowShouldClose(window)) {
         glfwPollEvents();
+
+        mat4 model = create_z_rot(10* glfwGetTime());
+        glUniformMatrix4fv(model_loc, 1, GL_FALSE, model.entries);
+
+
         glClear(GL_COLOR_BUFFER_BIT);
         glUseProgram(shaderProgram);
         material->use(0);

@@ -13,6 +13,7 @@ add_executable(graphics
     src/triangle_mesh.cpp
     src/config.cpp
     src/material.cpp
+    src/lin_algebra.cpp
 )
 
 target_include_directories(graphics PRIVATE
